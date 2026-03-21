@@ -19,5 +19,11 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<User>().HasIndex(u=>u.Email).IsUnique();
+
+        modelBuilder.Entity<Cinema>().HasData(
+            new Cinema { Id = 1, Name = "Room 1", Rows = 15, SeatsPerRow = 20 },
+            new Cinema { Id = 2, Name = "Room 2 (VIP)", Rows = 5, SeatsPerRow = 8 },
+            new Cinema { Id = 3, Name = "Room 3 (5D VIP)", Rows = 10, SeatsPerRow = 15 }
+        );
     }
 }

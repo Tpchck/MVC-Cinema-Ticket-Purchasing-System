@@ -4,6 +4,7 @@ using CinemaTicketSystem.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace CinemaTicketSystem.Controllers;
@@ -23,11 +24,11 @@ public class AccountController : Controller
         return View();
     }
     [HttpPost]
-    public IActionResult Register(RegisterViewModel model)
+    public async Task<IActionResult> Register(RegisterViewModel model)
     {
         if (ModelState.IsValid)
         {
-            if(_context.Users.Any(u=> u.Email == model.Email))
+            if(await _context.Users.AnyAsync(u=> u.Email == model.Email))
             {
                 ModelState.AddModelError("Email", "user with this email already exists");
                 return View(model);
@@ -44,12 +45,25 @@ public class AccountController : Controller
             _context.Users.Add(user);
             try
             {
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+                
+                // Автоматический вход после регистрации
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Email),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim("FullName", user.FirstName + " " + user.LastName)
+                };
+                var identity = new ClaimsIdentity(claims, "CookieAuth");
+                var principal = new ClaimsPrincipal(identity);
+                await HttpContext.SignInAsync("CookieAuth", principal);
+
                 return RedirectToAction("Index", "Home");
             }
             catch (DbUpdateException)
             {
-                ModelState.AddModelError("Email", "user with this email already exists");
+                ModelState.AddModelError("", "Database error occurred. Please try again later.");
                 return View(model);
             }
         }
@@ -67,12 +81,13 @@ public class AccountController : Controller
     {
         if (ModelState.IsValid)
         {
-            var user = _context.Users.FirstOrDefault(u=>u.Email == model.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u=>u.Email == model.Email);
             if(user != null && user.PasswordHash == model.Password)
             {
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.Email),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Role, user.Role),
                     new Claim("FullName", user.FirstName + " " + user.LastName)
                 };
@@ -89,5 +104,64 @@ public class AccountController : Controller
     {
         await HttpContext.SignOutAsync("CookieAuth");
         return RedirectToAction("Index", "Home");
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> EditProfile()
+    {
+        var claimId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(claimId)) return Challenge();
+        
+        int currentUserId = int.Parse(claimId);
+        var user = await _context.Users.FindAsync(currentUserId);
+        
+        if (user == null) return NotFound();
+
+        var model = new EditProfileViewModel
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            PhoneNumber = user.PhoneNumber
+        };
+        return View(model);
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            var claimId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(claimId)) return Challenge();
+            
+            int currentUserId = int.Parse(claimId);
+            
+            // Пользователь может редактировать только СВОЙ профиль
+            if (model.Id != currentUserId)
+            {
+                return Forbid();
+            }
+
+            var user = await _context.Users.FindAsync(model.Id);
+            if (user == null) return NotFound();
+
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.PhoneNumber = model.PhoneNumber;
+
+            try 
+            {
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index", "Home");
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError("", "Database error occurred while updating profile.");
+            }
+        }
+        return View(model);
     }
 }

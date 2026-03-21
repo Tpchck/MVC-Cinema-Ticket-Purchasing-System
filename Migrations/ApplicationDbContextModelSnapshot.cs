@@ -43,6 +43,29 @@ namespace CinemaTicketSystem.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Cinemas");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Room 1",
+                            Rows = 15,
+                            SeatsPerRow = 20
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Room 2 (VIP)",
+                            Rows = 5,
+                            SeatsPerRow = 8
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Room 3 (5D VIP)",
+                            Rows = 10,
+                            SeatsPerRow = 15
+                        });
                 });
 
             modelBuilder.Entity("CinemaTicketSystem.Models.Reservation", b =>
@@ -106,6 +129,10 @@ namespace CinemaTicketSystem.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .IsRequired()

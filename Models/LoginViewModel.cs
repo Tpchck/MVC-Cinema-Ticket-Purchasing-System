@@ -5,7 +5,7 @@ namespace CinemaTicketSystem.Models;
 public class LoginViewModel
 {
     [Required(ErrorMessage = "enter email")]
-    [EmailAddress(ErrorMessage = "Wrong Email Format")]
+    [EmailAddress(ErrorMessage = "wrong email format")]
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "enter password")]
