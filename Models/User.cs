@@ -12,5 +12,5 @@ public class User
     public string Role { get; set; } = "User";
     public List<Reservation> Reservations { get; set; } = new();
     [ConcurrencyCheck] //TODO maybe [Timestamp] ?
-    public Guid ConcurrencyToken { get; set; } = Guid.NewGuid();
+    public Guid ConcurrencyToken { get; set; }
 }

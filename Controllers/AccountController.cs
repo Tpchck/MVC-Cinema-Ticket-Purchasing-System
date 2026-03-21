@@ -40,14 +40,14 @@ public class AccountController : Controller
                 PhoneNumber = model.PhoneNumber,
                 Email = model.Email,
                 PasswordHash = model.Password,
-                Role = "User"
+                Role = "User",
+                ConcurrencyToken = Guid.NewGuid()
             };
             _context.Users.Add(user);
             try
             {
                 await _context.SaveChangesAsync();
                 
-                // Автоматический вход после регистрации
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.Email),
@@ -139,7 +139,6 @@ public class AccountController : Controller
             
             int currentUserId = int.Parse(claimId);
             
-            // Пользователь может редактировать только СВОЙ профиль
             if (model.Id != currentUserId)
             {
                 return Forbid();

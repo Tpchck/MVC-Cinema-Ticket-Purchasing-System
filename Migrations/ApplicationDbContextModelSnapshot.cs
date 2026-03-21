@@ -164,6 +164,19 @@ namespace CinemaTicketSystem.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 9000,
+                            ConcurrencyToken = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Email = "admin@cinema.com",
+                            FirstName = "Admin",
+                            LastName = "",
+                            PasswordHash = "admin123",
+                            PhoneNumber = "+0000000000",
+                            Role = "Admin"
+                        });
                 });
 
             modelBuilder.Entity("CinemaTicketSystem.Models.Reservation", b =>
