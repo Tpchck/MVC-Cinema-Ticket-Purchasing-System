@@ -31,9 +31,18 @@
        <li class="nav-item">
             <span class="nav-link text-dark">Hello, @User.Identity.Name!</span>
         </li>
-        <li class="nav-item">
-            <a class="nav-link text-primary" asp-controller="Account" asp-action="EditProfile">Profile</a>
-        </li>
+        @if (!User.IsInRole("Admin"))
+        {
+            <li class="nav-item">
+                <a class="nav-link text-primary" asp-controller="Account" asp-action="EditProfile">Profile</a>
+            </li>
+        }
+        @if (User.IsInRole("Admin"))
+        {
+            <li class="nav-item">
+            <a class="nav-link text-danger" asp-controller="Admin" asp-action="Index">Admin Dashboard</a>
+            </li>
+        }
         <li class="nav-item">
             <form asp-controller="Account" asp-action="Logout" method="post" class="form-inline">
                 <button type="submit" class="btn btn-link nav-link text-dark">Log out</button>

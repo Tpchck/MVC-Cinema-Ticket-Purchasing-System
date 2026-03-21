@@ -123,7 +123,8 @@ public class AccountController : Controller
             Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber
+            PhoneNumber = user.PhoneNumber,
+            ConcurrencyToken = user.ConcurrencyToken
         };
         return View(model);
     }
@@ -147,14 +148,20 @@ public class AccountController : Controller
             var user = await _context.Users.FindAsync(model.Id);
             if (user == null) return NotFound();
 
+            _context.Entry(user).Property("ConcurrencyToken").OriginalValue = model.ConcurrencyToken;
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.PhoneNumber = model.PhoneNumber;
+            user.ConcurrencyToken = Guid.NewGuid();
 
             try 
             {
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index", "Home");
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                ModelState.AddModelError("", "Old version, refresh website");
             }
             catch (DbUpdateException)
             {

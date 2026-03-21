@@ -15,7 +15,12 @@ public class AdminController : Controller
     {
         _context = context;
     }
-
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        var users = await _context.Users.ToListAsync();
+        return View(users);
+    }
     [HttpGet]
     public async Task<IActionResult> EditUser(int id)
     {
@@ -48,7 +53,7 @@ public class AdminController : Controller
             try
             {
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Index", "Home"); 
+                return RedirectToAction(nameof(Index)); 
             }
             catch (DbUpdateConcurrencyException)
             {
