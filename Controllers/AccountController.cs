@@ -5,17 +5,19 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using CinemaTicketSystem.Services;
 
 namespace CinemaTicketSystem.Controllers;
 
 public class AccountController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly IUserService _userService;
 
-    public AccountController(ApplicationDbContext context)
+    public AccountController(ApplicationDbContext context, IUserService userService)
     {
         _context = context;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -114,9 +116,23 @@ public class AccountController : Controller
         if (string.IsNullOrEmpty(claimId)) return Challenge();
         
         int currentUserId = int.Parse(claimId);
-        var user = await _context.Users.FindAsync(currentUserId);
+        var user = await _context.Users
+            .Include(u => u.Reservations)
+            .ThenInclude(r => r.Screening)
+            .ThenInclude(s => s.Cinema)
+            .FirstOrDefaultAsync(u => u.Id == currentUserId);
         
         if (user == null) return NotFound();
+
+        var reservationItems = user.Reservations.Select(r => new UserReservationItemViewModel
+        {
+            ReservationId = r.Id,
+            MovieTitle = r.Screening?.MovieTitle ?? "Unknown",
+            CinemaName = r.Screening?.Cinema?.Name ?? "Unknown Room",
+            StartTime = r.Screening?.StartTime ?? DateTime.MinValue,
+            RowPosition = r.RowPosition,
+            SeatPosition = r.SeatPosition
+        }).ToList();
 
         var model = new EditProfileViewModel
         {
@@ -124,7 +140,8 @@ public class AccountController : Controller
             FirstName = user.FirstName,
             LastName = user.LastName,
             PhoneNumber = user.PhoneNumber,
-            ConcurrencyToken = user.ConcurrencyToken
+            ConcurrencyToken = user.ConcurrencyToken,
+            Reservations = reservationItems
         };
         return View(model);
     }
@@ -140,33 +157,14 @@ public class AccountController : Controller
             
             int currentUserId = int.Parse(claimId);
             
-            if (model.Id != currentUserId)
+            var result = await _userService.EditUserProfileAsync(model, currentUserId, isAdmin: false);
+            
+            if (result.Success)
             {
-                return Forbid();
-            }
-
-            var user = await _context.Users.FindAsync(model.Id);
-            if (user == null) return NotFound();
-
-            _context.Entry(user).Property("ConcurrencyToken").OriginalValue = model.ConcurrencyToken;
-            user.FirstName = model.FirstName;
-            user.LastName = model.LastName;
-            user.PhoneNumber = model.PhoneNumber;
-            user.ConcurrencyToken = Guid.NewGuid();
-
-            try 
-            {
-                await _context.SaveChangesAsync();
                 return RedirectToAction("Index", "Home");
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                ModelState.AddModelError("", "Old version, refresh website");
-            }
-            catch (DbUpdateException)
-            {
-                ModelState.AddModelError("", "Database error occurred while updating profile.");
-            }
+            
+            ModelState.AddModelError("", result.ErrorMessage);
         }
         return View(model);
     }
