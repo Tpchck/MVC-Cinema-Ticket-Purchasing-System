@@ -32,5 +32,34 @@
 
             <button type="submit" class="btn btn-primary w-100">Save changes</button>
         </form>
+
+        <hr class="my-5" />
+
+        <h3 class="text-center mb-4">My Reservations</h3>
+
+        @if (!Model.Reservations.Any())
+        {
+            <div class="alert alert-light text-center border">You have no active reservations.</div>
+        }
+        else
+        {
+            <div class="list-group shadow-sm">
+                @foreach (var res in Model.Reservations)
+                {
+                    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 fw-bold">@res.MovieTitle</h6>
+                            <small class="text-muted d-block">@res.CinemaName | @res.StartTime.ToString("f")</small>
+                            <span class="badge bg-info text-dark mt-1">Row @res.RowPosition, Seat @res.SeatPosition</span>
+                        </div>
+                        <form asp-controller="Reservation" asp-action="CancelSeat" method="post" onsubmit="return confirm('Cancel this reservation?');">
+                            <input type="hidden" name="reservationId" value="@res.ReservationId" />
+                            <input type="hidden" name="screeningId" value="0" /> @* screeningId 0 will just redirect back to profile if we handle it in controller or let it fall back *@
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
     </div>
 </div>

@@ -1,4 +1,4 @@
-@model IEnumerable<CinemaTicketSystem.Models.User>
+@model CinemaTicketSystem.Models.AdminDashboardViewModel
 
 <h2>Admin Dashboard</h2>
 <table class="table">
@@ -11,7 +11,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var user in Model)
+        @foreach (var user in Model.Users)
         {
             <tr>
                 <td>@user.Email</td>
@@ -19,6 +19,29 @@
                 <td>@user.LastName</td>
                 <td>
                     <a asp-action="EditUser" asp-route-id="@user.Id" class="btn btn-sm btn-primary">Edit User</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+     <thead>
+        <tr>
+            <th>Movie Title</th>
+            <th>Cinema</th>
+            <th>Start Time</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var screening in Model.Screenings)
+        {
+            <tr>
+                <td>@screening.MovieTitle</td>
+                <td>@screening.Cinema?.Name</td>
+                <td>@screening.StartTime</td>
+                <td>
+                    <form asp-action="DeleteScreening" method="post" asp-route-id="@screening.Id" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
                 </td>
             </tr>
         }

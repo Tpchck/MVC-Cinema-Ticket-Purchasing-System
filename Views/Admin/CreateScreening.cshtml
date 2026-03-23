@@ -1,0 +1,19 @@
+@model CinemaTicketSystem.Models.Screening
+@{
+    ViewData["Title"] = "Create Screening";
+}
+<form asp-action="CreateScreening" method="post">
+    <div class="mb-3">
+        <label asp-for="MovieTitle" class="form-label">Movie Title</label>
+        <input asp-for="MovieTitle" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="CinemaId" class="form-label">Cinema</label>
+        <select asp-for="CinemaId" class="form-control" asp-items="ViewBag.Cinemas"></select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="StartTime" class="form-label">Start Time</label>
+        <input asp-for="StartTime" class="form-control" type="datetime-local" />
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>

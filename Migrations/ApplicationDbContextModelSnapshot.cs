@@ -48,23 +48,37 @@ namespace CinemaTicketSystem.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "Room 1",
+                            Name = "IMAX Auditoria",
                             Rows = 15,
                             SeatsPerRow = 20
                         },
                         new
                         {
                             Id = 2,
-                            Name = "Room 2 (VIP)",
+                            Name = "IMAX VIP Auditoria",
                             Rows = 5,
                             SeatsPerRow = 8
                         },
                         new
                         {
                             Id = 3,
-                            Name = "Room 3 (5D VIP)",
+                            Name = "Grand Cinema Auditoria 5D",
                             Rows = 10,
                             SeatsPerRow = 15
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Grand Cinema Hall",
+                            Rows = 20,
+                            SeatsPerRow = 30
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "IMAX Laser Auditoria",
+                            Rows = 18,
+                            SeatsPerRow = 24
                         });
                 });
 
@@ -90,9 +104,10 @@ namespace CinemaTicketSystem.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ScreeningId");
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex("ScreeningId", "RowPosition", "SeatPosition")
+                        .IsUnique();
 
                     b.ToTable("Reservations");
                 });
@@ -120,6 +135,78 @@ namespace CinemaTicketSystem.Migrations
                     b.HasIndex("CinemaId");
 
                     b.ToTable("Screenings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CinemaId = 1,
+                            MovieTitle = "The Matrix",
+                            StartTime = new DateTime(2026, 5, 1, 10, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CinemaId = 1,
+                            MovieTitle = "Free Guy",
+                            StartTime = new DateTime(2026, 5, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CinemaId = 1,
+                            MovieTitle = "The Green Mile",
+                            StartTime = new DateTime(2026, 5, 2, 10, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CinemaId = 2,
+                            MovieTitle = "Fight Club",
+                            StartTime = new DateTime(2026, 5, 2, 18, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CinemaId = 2,
+                            MovieTitle = "Total Recall",
+                            StartTime = new DateTime(2026, 5, 3, 14, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CinemaId = 4,
+                            MovieTitle = "Inception",
+                            StartTime = new DateTime(2026, 5, 3, 12, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CinemaId = 5,
+                            MovieTitle = "Interstellar",
+                            StartTime = new DateTime(2026, 5, 4, 15, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CinemaId = 5,
+                            MovieTitle = "Dune: Part Two",
+                            StartTime = new DateTime(2026, 5, 4, 19, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CinemaId = 4,
+                            MovieTitle = "Oppenheimer",
+                            StartTime = new DateTime(2026, 5, 5, 22, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CinemaId = 3,
+                            MovieTitle = "Spider-Man: Across the Spider-Verse",
+                            StartTime = new DateTime(2026, 5, 5, 17, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("CinemaTicketSystem.Models.User", b =>
