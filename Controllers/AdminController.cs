@@ -93,7 +93,6 @@ public class AdminController : Controller
                 {
                     bool isTaken = screeningReservations.Any(sr => sr.RowPosition == row && sr.SeatPosition == seat);
                     
-                    // A seat is valid to select if it's free OR if it's the current seat itself
                     if (!isTaken || (r.RowPosition == row && r.SeatPosition == seat))
                     {
                         freeSeats.Add(new SelectListItem 
@@ -142,7 +141,6 @@ public class AdminController : Controller
             
             int currentAdminId = int.Parse(claimId);
             
-            // Re-map to plain EditProfileViewModel because that's what IUserService expects
             var profileModel = new EditProfileViewModel
             {
                 Id = model.Id,
@@ -158,10 +156,8 @@ public class AdminController : Controller
             {
                 return RedirectToAction(nameof(Index)); 
             }
-            ModelState.AddModelError("", result.ErrorMessage);
+            TempData["ErrorMessage"] = result.ErrorMessage;
         }
-        
-        // Return to GET directly to reload all complex dropdown data cleanly
         return RedirectToAction(nameof(EditUser), new { id = model.Id });
     }
 
@@ -177,8 +173,6 @@ public class AdminController : Controller
 
         var reservation = await _context.Reservations.FindAsync(reservationId);
         if (reservation == null) return NotFound();
-
-        // The UI dropdown prevents picking a taken seat, but DB unique index enforces it just in case.
         reservation.RowPosition = newRow;
         reservation.SeatPosition = newSeat;
 

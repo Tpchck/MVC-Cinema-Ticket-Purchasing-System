@@ -91,7 +91,6 @@ public class ReservationController : Controller
         }
         catch (DbUpdateException)
         {
-            // Specifically catches the unique constraint violation in PostgreSQL
             TempData["ErrorMessage"] = "Seat is already taken or another database error occurred.";
             return RedirectToAction(nameof(SeatMap), new { screeningId = screeningId });
         }
@@ -111,7 +110,6 @@ public class ReservationController : Controller
         if (reservation == null)
             return RedirectToAction(nameof(SeatMap), new { screeningId = screeningId });
 
-        // Only Admin or the owner can cancel
         if (reservation.UserId != currentUserId && !User.IsInRole("Admin"))
         {
             return Forbid();

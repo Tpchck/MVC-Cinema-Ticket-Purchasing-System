@@ -20,15 +20,13 @@ public class UserService : IUserService
             return (false, "Forbidden: You do not have permission to edit this profile.");
         }
 
-        var user = await _context.Users.FindAsync(model.Id);
-        if (user == null)
-            return (false, "Not Found: User does not exist.");
+        var user = new User { Id = model.Id, ConcurrencyToken = model.ConcurrencyToken };
+        _context.Users.Attach(user);
 
-        _context.Entry(user).Property("ConcurrencyToken").OriginalValue = model.ConcurrencyToken;
         user.FirstName = model.FirstName;
         user.LastName = model.LastName;
         user.PhoneNumber = model.PhoneNumber;
-        user.ConcurrencyToken = Guid.NewGuid();
+       // user.ConcurrencyToken = Guid.NewGuid();
 
         try
         {

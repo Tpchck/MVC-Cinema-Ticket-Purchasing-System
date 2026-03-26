@@ -166,6 +166,30 @@ public class AccountController : Controller
             
             ModelState.AddModelError("", result.ErrorMessage);
         }
+
+        var claimIdReload = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrEmpty(claimIdReload))
+        {
+            int userId = int.Parse(claimIdReload);
+            var freshUser = await _context.Users.AsNoTracking()
+                .Include(u => u.Reservations).ThenInclude(r => r.Screening).ThenInclude(s => s.Cinema)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (freshUser != null)
+            {
+                model.ConcurrencyToken = freshUser.ConcurrencyToken;
+                model.Reservations = freshUser.Reservations.Select(r => new UserReservationItemViewModel
+                {
+                    ReservationId = r.Id,
+                    MovieTitle = r.Screening?.MovieTitle ?? "Unknown",
+                    CinemaName = r.Screening?.Cinema?.Name ?? "Unknown Room",
+                    StartTime = r.Screening?.StartTime ?? DateTime.MinValue,
+                    RowPosition = r.RowPosition,
+                    SeatPosition = r.SeatPosition
+                }).ToList();
+            }
+        }
+
         return View(model);
     }
 }
